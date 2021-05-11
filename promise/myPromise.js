@@ -81,6 +81,18 @@ class Promise {
     });
     return promise2;
   }
+
+  static resolve(val) {
+    return new Promise((resolve) => {
+      resolve(val);
+    });
+  }
+
+  static reject(reason) {
+    return new Promise((resolve, reject) => {
+      reject(reason);
+    });
+  }
 }
 
 function promiseResolve(x, promise2, resolve, reject) {
@@ -125,3 +137,36 @@ function promiseResolve(x, promise2, resolve, reject) {
     resolve(x);
   }
 }
+
+// Promise.prototype.finally 最终的执行结果 不会影响后续的结果
+Promise.prototype.finally = function () {
+  return this.then(
+    (data) => {
+      return Promise.resolve(callback()).then(() => data);
+    },
+    (err) => {
+      return Promise.resolve(callback()).then(() => {
+        throw err;
+      });
+    }
+  );
+};
+
+Promise.all = function (promises) {
+  return new Promise((resolve, reject) => {
+    let result = [];
+    for (let i = 0; i < promises.length; i++) {
+      Promise.resolve(promises[i]).then(
+        (data) => {
+          result[i] = data;
+          if (result.length === promises.length) {
+            resolve(result);
+          }
+        },
+        (e) => {
+          reject(e);
+        }
+      );
+    }
+  });
+};
